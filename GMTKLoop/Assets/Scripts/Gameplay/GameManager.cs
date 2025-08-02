@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -9,6 +10,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int currentRound = 0;
 
     private const string HighScoreKey = "HighRound";
+
+    [SerializeField] private GameObject escapeMarker;
+
+    [SerializeField] private Cell escapeCell;
+
+    [SerializeField] private bool debugMode = false;
 
     private void Awake()
     {
@@ -29,12 +36,14 @@ public class GameManager : MonoBehaviour
         // Logic to start the round
         Pathfinder.i.Init();
         SpawnAllUnits();
+        escapeCell = WorldBuilder.GetGrid().GetGridObject(escapeMarker.transform.position);
         GridCombatSystem.i.StartRound();
         
         currentRound++;
         CheckAndUpdateHighRound();
         
-        Debug.Log("Round started.");
+        if (debugMode)
+            Debug.Log("Round started.");
     }
 
     private void SpawnAllUnits()
@@ -50,7 +59,8 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("No UnitSpawners found in the scene.");
+            if (debugMode)
+                Debug.LogWarning("No UnitSpawners found in the scene.");
         }
     }
 
@@ -72,7 +82,8 @@ public class GameManager : MonoBehaviour
 
     public void ResetRounds()
     {
-        Debug.Log("Resetting rounds.");
+        if (debugMode)
+            Debug.Log("Resetting rounds.");
         currentRound = 0;
     }
 
@@ -84,7 +95,8 @@ public class GameManager : MonoBehaviour
     public void ResetHighRound()
     {
         PlayerPrefs.DeleteKey(HighScoreKey);
-        Debug.Log("High round score reset.");
+        if (debugMode)
+            Debug.Log("High round score reset.");
     }
 
     private void CheckAndUpdateHighRound()
@@ -94,7 +106,26 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt(HighScoreKey, currentRound);
             PlayerPrefs.Save(); // Always save after setting
-            Debug.Log($"New high round reached: {currentRound}");
+            if (debugMode)
+                Debug.Log($"New high round reached: {currentRound}");
         }
     }
+
+    public void ResetBlueUnitsToSpawn(List<Unit> units)
+    {
+        for (int i = 0; i < units.Count; i++)
+        {
+            if (units[i] != null)
+            {
+                units[i].GetSpawner()?.ResetUnitPosition();
+            }
+            else
+            {
+                if (debugMode)
+                    Debug.LogWarning($"Unit at index {i} is null, cannot reset to spawn.");
+            }
+        }
+    }
+
+    public Cell GetEscapeCell() => escapeCell;
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,6 +25,24 @@ public class GridCombatSystem : MonoBehaviour
     [SerializeField] private bool canMoveThisTurn;
     [SerializeField] private bool canAttackThisTurn;
 
+    [SerializeField] private int maxActionPoints;
+    [SerializeField] private int currentActionPoints;
+
+    public int MaxActionPoints
+    {
+        get { return maxActionPoints; }
+        private set { maxActionPoints = value; }
+    }
+    public int CurrentActionPoints
+    {
+        get { return currentActionPoints; }
+        private set 
+        { 
+            currentActionPoints = value;
+            UIManager.i.OpenMenu("Game", (menu) => menu.SetActionPointsText());
+        }
+    }
+
     [SerializeField] private bool debugMode = false;
 
     private void Awake()
@@ -44,6 +63,8 @@ public class GridCombatSystem : MonoBehaviour
 
     public void StartRound()
     {
+        CurrentActionPoints = MaxActionPoints;
+
         grid = WorldBuilder.GetGrid();
         units = new List<Unit>(FindObjectsByType<Unit>(FindObjectsSortMode.InstanceID));
 
@@ -182,6 +203,9 @@ public class GridCombatSystem : MonoBehaviour
         if (i == null || i.units == null)
             return;
 
+        //If needed
+        //i.CheckEscapeCondition();
+
         i.grid.GetGridObject(unit.transform.position).ClearUnit();
 
         if (i.units.Contains(unit))
@@ -194,24 +218,89 @@ public class GridCombatSystem : MonoBehaviour
             Debug.Log($"{unit.name} has unsubscried");
     }
 
+    private void ForceTurnOver()
+    {
+        if ((!canMoveThisTurn || !canAttackThisTurn) && activeUnit != null && activeUnit.GetTeam() == Team.Player)
+        {
+            CurrentActionPoints--;
+
+            if (debugMode)
+                Debug.Log($"Blue team used an actionpoint");
+
+            CheckEscapeCondition();
+
+            if (CurrentActionPoints <= 0)
+            {
+                if (debugMode)
+                    Debug.Log("No action points left, ending turn");
+
+                GameManager.i.ResetBlueUnitsToSpawn(blueTeam);
+                CurrentActionPoints = MaxActionPoints; 
+                SelectNextActiveUnit();
+                return;
+            }
+        }
+
+        SelectNextActiveUnit();
+    }
+
     private void TestTurnOver()
     {
         if (!canAttackThisTurn && !canMoveThisTurn)
         {
             if (debugMode)
                 Debug.Log("Turn over, selecting next unit");
+            
+            if (activeUnit != null && activeUnit.GetTeam() == Team.Player)
+            {
+                CurrentActionPoints--;
+
+                if (debugMode)
+                    Debug.Log($"Blue team used an actionpoint");
+
+                CheckEscapeCondition();
+                
+                if (CurrentActionPoints <= 0)
+                {
+                    if (debugMode)
+                        Debug.Log("No action points left, ending turn");
+
+                    //TODO: Reset team blue positions
+                    GameManager.i.ResetBlueUnitsToSpawn(blueTeam);
+                    SelectNextActiveUnit();
+                    return;
+                }
+            }
+
             SelectNextActiveUnit();
         }
         else
         {
+            CheckEscapeCondition();
+
             if (debugMode)
                 Debug.Log("Cannot end turn, still have actions left");
         }
     }
 
-    private void ForceTurnOver()
+
+    private void CheckEscapeCondition()
     {
-        SelectNextActiveUnit();
+        foreach (Unit unit in blueTeam)
+        {
+            if (!unit.gameObject.activeSelf || unit == null)
+                continue;
+            Cell cell = grid.GetGridObject(unit.transform.position);
+            if (cell != null && cell == GameManager.i.GetEscapeCell())
+            {
+                EndGame(true);
+                return;
+            }
+        }
+        if (blueTeam.Count == 0)
+        {
+            EndGame(false);
+        }
     }
 
     public void SelectNextActiveUnit()
@@ -288,7 +377,7 @@ public class GridCombatSystem : MonoBehaviour
         {
             Debug.Log("Victory! All enemies defeated.");
             // TODO: Trigger win UI / animation / sound
-            EndGame(true);
+            //EndGame(true);
         }
     }
 

@@ -74,7 +74,7 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        CloseAllMenus();
+        OpenMenu("Game");
         GameManager.i.StartRound();
     }
 
@@ -82,5 +82,18 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Quitting game...");
         Application.Quit();
+    }
+
+    public Menu GetMenu(string menuName)
+    {
+        for (int i = 0; i < menus.Length; i++)
+        {
+            if (menus[i].menuName == menuName)
+            {
+                return menus[i];
+            }
+        }
+        Debug.LogWarning($"Menu with name {menuName} not found.");
+        return null;
     }
 }

@@ -8,6 +8,7 @@ public class Menu : MonoBehaviour
 
     [SerializeField] private TMP_Text roundText;
     [SerializeField] private TMP_Text highScoreText;
+    [SerializeField] private TMP_Text actionPointsText;
 
     public void Open()
     {
@@ -37,5 +38,13 @@ public class Menu : MonoBehaviour
         if (highScoreText == null)
             return;
         highScoreText.text = $"Highscore: {GameManager.i.GetHighRound()}";
+    }
+
+    public void SetActionPointsText()
+    {
+        if (actionPointsText == null)
+            return;
+
+        actionPointsText.text = $"{GridCombatSystem.i.CurrentActionPoints}|{GridCombatSystem.i.MaxActionPoints}";
     }
 }

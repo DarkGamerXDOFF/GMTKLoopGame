@@ -26,6 +26,8 @@ public class Unit : MonoBehaviour
 
     [SerializeField] private int attackDamage = 10;
 
+    [SerializeField] private UnitSpawner unitSpawner;
+
     public int AttackDamage
     {
         get { return attackDamage; }
@@ -165,11 +167,6 @@ public class Unit : MonoBehaviour
     public void TakeDamage(int damage)
     {
         healthSystem.TakeDamage(damage);
-
-        //if (healthSystem.IsDead()) // You'll need this helper in HealthSystem
-        //{
-        //    OnUnitDeath(); // Immediately trigger cleanup
-        //}
     }
 
     public Team GetTeam()
@@ -180,6 +177,21 @@ public class Unit : MonoBehaviour
     public void SetTeam(Team newTeam)
     {
         team = newTeam;
+    }
+
+    public UnitSpawner GetSpawner()
+    {
+        return unitSpawner;
+    }
+
+    public void SetSpawner(UnitSpawner spawner)
+    {
+        unitSpawner = spawner;
+    }
+
+    public void ClearSpawner()
+    {
+        unitSpawner = null;
     }
 }
 public enum Team { Player, Enemy }

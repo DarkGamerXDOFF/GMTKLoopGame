@@ -1,0 +1,100 @@
+using UnityEngine;
+
+public class GameManager : MonoBehaviour
+{
+    public static GameManager i;
+
+    private UnitSpawner[] unitSpawners;
+
+    [SerializeField] private int currentRound = 0;
+
+    private const string HighScoreKey = "HighRound";
+
+    private void Awake()
+    {
+        if (i == null)
+            i = this;
+        else
+            Destroy(gameObject);
+    }
+
+    private void Start()
+    {
+        UIManager.i.OpenMenu("Main", (menu) => menu.SetHighscoreText());
+    }
+
+    
+    public void StartRound()
+    {
+        // Logic to start the round
+        Pathfinder.i.Init();
+        SpawnAllUnits();
+        GridCombatSystem.i.StartRound();
+        
+        currentRound++;
+        CheckAndUpdateHighRound();
+        
+        Debug.Log("Round started.");
+    }
+
+    private void SpawnAllUnits()
+    {
+        unitSpawners = FindObjectsByType<UnitSpawner>(FindObjectsSortMode.InstanceID);
+
+        if (unitSpawners.Length > 0)
+        {
+            for (int i = 0; i < unitSpawners.Length; i++)
+            {
+                unitSpawners[i].SpawnUnit();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No UnitSpawners found in the scene.");
+        }
+    }
+
+    public void RemoveAllUnits()
+    {
+        if (unitSpawners.Length > 0)
+        {
+            for (int i = 0; i < unitSpawners.Length; i++)
+            {
+                unitSpawners[i].RemoveUnit();
+            }
+        }
+    }
+
+    public int GetCurrentRound()
+    {
+        return currentRound;
+    }
+
+    public void ResetRounds()
+    {
+        Debug.Log("Resetting rounds.");
+        currentRound = 0;
+    }
+
+    public int GetHighRound()
+    {
+        return PlayerPrefs.GetInt(HighScoreKey, 0);
+    }
+
+    public void ResetHighRound()
+    {
+        PlayerPrefs.DeleteKey(HighScoreKey);
+        Debug.Log("High round score reset.");
+    }
+
+    private void CheckAndUpdateHighRound()
+    {
+        int highRound = GetHighRound();
+        if (currentRound > highRound)
+        {
+            PlayerPrefs.SetInt(HighScoreKey, currentRound);
+            PlayerPrefs.Save(); // Always save after setting
+            Debug.Log($"New high round reached: {currentRound}");
+        }
+    }
+}

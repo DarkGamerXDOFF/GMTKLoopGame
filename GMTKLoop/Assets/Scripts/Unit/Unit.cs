@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(UnitMovement), typeof(Animator))]
+[RequireComponent(typeof(UnitMovement), typeof(Animator), typeof(Rigidbody))]
 public class Unit : MonoBehaviour
 {
-    [SerializeField] private Team team = Team.Player;
+    [SerializeField] private Team team = Team.Blue;
 
     private UnitMovement unitMovement;
     private LineRenderer lineRenderer;
     private Animator animator;
+    private Rigidbody rb;
     public HealthSystem healthSystem;
 
     [SerializeField] private int maxHealth = 100;
@@ -28,6 +29,10 @@ public class Unit : MonoBehaviour
 
     [SerializeField] private UnitSpawner unitSpawner;
 
+    private Vector3? lookTarget;
+
+    [SerializeField] private float rotationSpeed = 360f; // Degrees per second
+
     public int AttackDamage
     {
         get { return attackDamage; }
@@ -40,6 +45,7 @@ public class Unit : MonoBehaviour
         unitMovement = GetComponent<UnitMovement>();
         lineRenderer = GetComponent<LineRenderer>();
         animator = GetComponent<Animator>();
+        Rigidbody rb = GetComponent<Rigidbody>();
 
         if (lineRenderer != null)
         {
@@ -60,6 +66,26 @@ public class Unit : MonoBehaviour
     private void OnDisable()
     {
         GridCombatSystem.Unsubscribe(this);
+    }
+
+    private void Update()
+    {
+        if (lookTarget.HasValue)
+        {
+            Vector3 direction = (lookTarget.Value - transform.position).normalized;
+            direction.y = 0; // Keep the rotation on the horizontal plane
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+
+                if (Quaternion.Angle(transform.rotation, targetRotation) < 0.5f)
+                {
+                    transform.rotation = targetRotation; // Snap to the target rotation if close enough
+                    lookTarget = null; // Stop looking at the target once close enough
+                }
+            }
+        }
     }
 
     public void MoveTo(Vector3 destination, Action OnDestinationReached = null)
@@ -105,6 +131,12 @@ public class Unit : MonoBehaviour
 
             OnDestinationReached?.Invoke();
         });
+    }
+
+
+    public void LookAt(Vector3 targetPosition)
+    {
+        lookTarget = targetPosition;
     }
 
     private void DrawPathLine(List<PathNode<Cell>> path)
@@ -155,6 +187,7 @@ public class Unit : MonoBehaviour
 
     public void AttackUnit(Unit unit, Action OnAttackCompleted)
     {
+        LookAt(unit.transform.position);
         animator.SetTrigger("Attack");
         this.OnAttackCompleted = OnAttackCompleted;
     }
@@ -194,4 +227,4 @@ public class Unit : MonoBehaviour
         unitSpawner = null;
     }
 }
-public enum Team { Player, Enemy }
+public enum Team { Blue, Red }

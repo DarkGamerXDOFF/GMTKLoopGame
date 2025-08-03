@@ -9,7 +9,7 @@ public class Cell : IWalkable
     private float value;
 
 
-    private bool isWalkable = true;
+    private bool isWalkable = false;
     public bool IsWalkable { get => isWalkable; set => isWalkable = value; }
 
     private bool isValidMovePos = true;
@@ -17,9 +17,10 @@ public class Cell : IWalkable
 
     private Unit unit;
 
+    private GameObject CellGFX;
     private GameObject selector;
 
-    public Cell(Grid<Cell> grid, int x, int y)
+    public Cell(Grid<Cell> grid, int x, int y, Color selectorColor, Material wallMaterial)
     {
         this.grid = grid;
         this.x = x;
@@ -31,11 +32,12 @@ public class Cell : IWalkable
         this.value = value;
         grid.TriggerGridObjectChanged(x,y);
     }
+    public float GetValue() => value;
 
     public void SetSelector(GameObject selector)
     {
         this.selector = selector;
-        selector.GetComponentInChildren<SpriteRenderer>().color = isWalkable ? Color.green : Color.red;
+        selector.GetComponentInChildren<SpriteRenderer>().color = Color.green;
         if (selector != null)
         {
             selector.transform.position = grid.GetWorldPositionCellCenter(x, y);
@@ -43,7 +45,6 @@ public class Cell : IWalkable
         }
     }
 
-    public float GetValue() => value;
 
     public Grid<Cell> GetGrid() => grid;
 
@@ -54,6 +55,27 @@ public class Cell : IWalkable
     public void SetUnit(Unit unit) => this.unit = unit;
 
     public void ClearUnit() => unit = null;
+
+    public void SetCellGFX(GameObject cellGFX)
+    {
+        CellGFX = cellGFX;
+        if (CellGFX != null)
+        {
+            Vector3 cellPosition = IsWalkable ? grid.GetWorldPositionCellCenter(x, y) : grid.GetWorldPositionCellCenter(x, y) + new Vector3(0, grid.GetCellSize(), 0);
+            CellGFX.transform.position = cellPosition;
+        }
+    }
+
+    public void UpdateCellGFX()
+    {
+        if (CellGFX != null)
+        {
+            Vector3 cellPosition = IsWalkable ? 
+                grid.GetWorldPositionCellCenter(x, y) - new Vector3(0, grid.GetCellSize(), 0) : 
+                grid.GetWorldPositionCellCenter(x, y) + new Vector3(0, grid.GetCellSize(), 0);
+            CellGFX.transform.position = cellPosition;
+        }
+    }
 
     public override string ToString()
     {

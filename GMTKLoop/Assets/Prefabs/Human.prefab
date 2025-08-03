@@ -3103,6 +3103,8 @@ MonoBehaviour:
   showPath: 1
   lineHeightOffset: 0.1
   attackDamage: 50
+  unitSpawner: {fileID: 0}
+  rotationSpeed: 720
 --- !u!1 &5288850630895400595
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ public static class Mouse3D
             return raycastHit.point;
         else
         {
-            Debug.LogError("Mouse WorldPosition Not Found");
+            //Debug.LogError("Mouse WorldPosition Not Found");
             return Vector3.zero;
         }
     }

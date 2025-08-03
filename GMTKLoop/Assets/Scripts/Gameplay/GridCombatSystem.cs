@@ -1,10 +1,11 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GridCombatSystem : MonoBehaviour
 {
     public static GridCombatSystem i;
+
+    public GameSettingsSO gameSettings;
 
     private List<Unit> units;
     [SerializeField] private Unit activeUnit;
@@ -15,7 +16,7 @@ public class GridCombatSystem : MonoBehaviour
     [SerializeField] private int blueTeamActiveUnitIndex;
     [SerializeField] private int redTeamActiveUnitIndex;
 
-    [SerializeField] private int maxMoveDistance = 5;
+    //[SerializeField] private int maxMoveDistance = 5;
 
     private Grid<Cell> grid;
 
@@ -25,13 +26,12 @@ public class GridCombatSystem : MonoBehaviour
     [SerializeField] private bool canMoveThisTurn;
     [SerializeField] private bool canAttackThisTurn;
 
-    [SerializeField] private int maxActionPoints;
     [SerializeField] private int currentActionPoints;
 
     public int MaxActionPoints
     {
-        get { return maxActionPoints; }
-        private set { maxActionPoints = value; }
+        get { return gameSettings.maxActionPoints; }
+        private set { gameSettings.maxActionPoints = value; }
     }
     public int CurrentActionPoints
     {
@@ -71,7 +71,7 @@ public class GridCombatSystem : MonoBehaviour
         foreach (Unit unit in units)
         {
             grid.GetGridObject(unit.transform.position).SetUnit(unit);
-            if (unit.GetTeam() != Team.Player)
+            if (unit.GetTeam() != Team.Blue)
                 redTeam.Add(unit);
             else
                 blueTeam.Add(unit);
@@ -117,6 +117,7 @@ public class GridCombatSystem : MonoBehaviour
 
                                     state = State.Waiting;
 
+                                    activeUnit.LookAt(targetUnit.transform.position);
                                     activeUnit.AttackUnit(targetUnit, () =>
                                     {
                                         if (debugMode)
@@ -199,12 +200,8 @@ public class GridCombatSystem : MonoBehaviour
 
     public static void Unsubscribe(Unit unit)
     {
-        //Debug.Log($"Unsubscribing {unit.name} from GridCombatSystem");
         if (i == null || i.units == null)
             return;
-
-        //If needed
-        //i.CheckEscapeCondition();
 
         i.grid.GetGridObject(unit.transform.position).ClearUnit();
 
@@ -220,7 +217,7 @@ public class GridCombatSystem : MonoBehaviour
 
     private void ForceTurnOver()
     {
-        if ((!canMoveThisTurn || !canAttackThisTurn) && activeUnit != null && activeUnit.GetTeam() == Team.Player)
+        if ((!canMoveThisTurn || !canAttackThisTurn) && activeUnit != null && activeUnit.GetTeam() == Team.Blue)
         {
             CurrentActionPoints--;
 
@@ -251,7 +248,7 @@ public class GridCombatSystem : MonoBehaviour
             if (debugMode)
                 Debug.Log("Turn over, selecting next unit");
             
-            if (activeUnit != null && activeUnit.GetTeam() == Team.Player)
+            if (activeUnit != null && activeUnit.GetTeam() == Team.Blue)
             {
                 CurrentActionPoints--;
 
@@ -329,7 +326,7 @@ public class GridCombatSystem : MonoBehaviour
         else
         {
             // Alternate between blue and red units
-            if (activeUnit == null || activeUnit.GetTeam() == Team.Enemy)
+            if (activeUnit == null || activeUnit.GetTeam() == Team.Red)
             {
                 SetActiveUnit(GetNextActiveUnit(blueTeam));
             }
@@ -369,16 +366,14 @@ public class GridCombatSystem : MonoBehaviour
 
         if (blueTeam.Count == 0)
         {
-            Debug.Log("Game Over! You lost.");
-            // TODO: Trigger lose UI / screen / event
+            if (debugMode)
+                Debug.Log("Game Over! You lost.");
             EndGame(false);
         }
         else if (redTeam.Count == 0)
-        {
-            Debug.Log("Victory! All enemies defeated.");
-            // TODO: Trigger win UI / animation / sound
-            //EndGame(true);
-        }
+            if (debugMode)
+                Debug.Log("Victory! All enemies defeated.");
+
     }
 
     private void EndGame(bool playerWon)
@@ -429,9 +424,9 @@ public class GridCombatSystem : MonoBehaviour
 
         grid.GetXY(activeUnit.transform.position, out int unitX, out int unitY);
         
-        for (int x = unitX - maxMoveDistance; x <= unitX + maxMoveDistance; x++)
+        for (int x = unitX - gameSettings.maxMoveDistance; x <= unitX + gameSettings.maxMoveDistance; x++)
         {
-            for (int y = unitY - maxMoveDistance; y <= unitY + maxMoveDistance; y++)
+            for (int y = unitY - gameSettings.maxMoveDistance; y <= unitY + gameSettings.maxMoveDistance; y++)
             {
                 Cell cell = grid.GetGridObject(x, y);
 
@@ -448,9 +443,9 @@ public class GridCombatSystem : MonoBehaviour
             }
         }
 
-        for (int x = unitX - maxMoveDistance; x <= unitX + maxMoveDistance; x++)
+        for (int x = unitX - gameSettings.maxMoveDistance; x <= unitX + gameSettings.maxMoveDistance; x++)
         {
-            for (int y = unitY - maxMoveDistance; y <= unitY + maxMoveDistance; y++)
+            for (int y = unitY - gameSettings.maxMoveDistance; y <= unitY + gameSettings.maxMoveDistance; y++)
             {
                 Cell cell = grid.GetGridObject(x, y);
 
@@ -458,7 +453,7 @@ public class GridCombatSystem : MonoBehaviour
                     continue;
 
                 List<PathNode<Cell>> path = Pathfinder.FindPath(grid.GetGridObject(unitX, unitY), cell);
-                cell.IsValidMovePos = path != null && path.Count <= maxMoveDistance + 1;
+                cell.IsValidMovePos = path != null && path.Count <= gameSettings.maxMoveDistance + 1;
 
                 cell.ShowSelector(cell.IsValidMovePos);
             }

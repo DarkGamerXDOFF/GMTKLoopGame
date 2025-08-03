@@ -3,15 +3,17 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    
+
     public static GameManager i;
 
-    private UnitSpawner[] unitSpawners;
+    private List<UnitSpawner> unitSpawners;
 
     [SerializeField] private int currentRound = 0;
 
     private const string HighScoreKey = "HighRound";
 
-    [SerializeField] private GameObject escapeMarker;
+    public static GameObject escapeMarker;
 
     [SerializeField] private Cell escapeCell;
 
@@ -33,6 +35,8 @@ public class GameManager : MonoBehaviour
     
     public void StartRound()
     {
+        WorldBuilder.i.RegenerateWorld(WorldBuilder.GetGrid());
+
         // Logic to start the round
         Pathfinder.i.Init();
         SpawnAllUnits();
@@ -48,11 +52,11 @@ public class GameManager : MonoBehaviour
 
     private void SpawnAllUnits()
     {
-        unitSpawners = FindObjectsByType<UnitSpawner>(FindObjectsSortMode.InstanceID);
+        unitSpawners = WorldBuilder.i.GetAllUnitSpawners();
 
-        if (unitSpawners.Length > 0)
+        if (unitSpawners.Count > 0)
         {
-            for (int i = 0; i < unitSpawners.Length; i++)
+            for (int i = 0; i < unitSpawners.Count; i++)
             {
                 unitSpawners[i].SpawnUnit();
             }
@@ -66,9 +70,9 @@ public class GameManager : MonoBehaviour
 
     public void RemoveAllUnits()
     {
-        if (unitSpawners.Length > 0)
+        if (unitSpawners.Count > 0)
         {
-            for (int i = 0; i < unitSpawners.Length; i++)
+            for (int i = 0; i < unitSpawners.Count; i++)
             {
                 unitSpawners[i].RemoveUnit();
             }

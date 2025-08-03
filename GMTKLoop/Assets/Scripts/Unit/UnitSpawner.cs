@@ -10,11 +10,13 @@ public class UnitSpawner : MonoBehaviour
 
     public void SpawnUnit()
     {
+
         if (unitPrefab == null)
         {
             Debug.LogError("Unit Prefab is not assigned in the UnitSpawner.");
             return;
         }
+
         GameObject unitGO = Instantiate(unitPrefab, transform.position, Quaternion.identity);
         unit = unitGO.GetComponent<Unit>();
         WorldBuilder.GetGrid().GetGridObject(unit.transform.position).SetUnit(unit);

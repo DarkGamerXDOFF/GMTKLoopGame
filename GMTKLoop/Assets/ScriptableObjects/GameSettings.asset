@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: GameSettings
   m_EditorClassIdentifier: 
   maxMoveDistance: 3
-  maxActionPoints: 6
+  maxActionPoints: 8

@@ -17,14 +17,26 @@ public class Cell : IWalkable
 
     private Unit unit;
 
-    private GameObject CellGFX;
+    private GameObject cellGFX;
     private GameObject selector;
 
-    public Cell(Grid<Cell> grid, int x, int y, Color selectorColor, Material wallMaterial)
+    private Mesh fullMesh;
+    private Mesh emptyMesh;
+
+    private Color walkableColor;
+    private Material wallMaterial;
+
+
+    public Cell(Grid<Cell> grid, int x, int y, Color selectorColor, Material wallMaterial, Mesh fullMesh, Mesh emptyMesh)
     {
         this.grid = grid;
         this.x = x;
         this.y = y;
+
+        this.fullMesh = fullMesh;
+        this.emptyMesh = emptyMesh;
+        this.wallMaterial = wallMaterial;
+        walkableColor = selectorColor;
     }
 
     public void SetValue(float value)
@@ -37,7 +49,7 @@ public class Cell : IWalkable
     public void SetSelector(GameObject selector)
     {
         this.selector = selector;
-        selector.GetComponentInChildren<SpriteRenderer>().color = Color.green;
+        selector.GetComponentInChildren<SpriteRenderer>().color = walkableColor;
         if (selector != null)
         {
             selector.transform.position = grid.GetWorldPositionCellCenter(x, y);
@@ -58,22 +70,23 @@ public class Cell : IWalkable
 
     public void SetCellGFX(GameObject cellGFX)
     {
-        CellGFX = cellGFX;
-        if (CellGFX != null)
+        this.cellGFX = cellGFX;
+        if (this.cellGFX != null)
         {
-            Vector3 cellPosition = IsWalkable ? grid.GetWorldPositionCellCenter(x, y) : grid.GetWorldPositionCellCenter(x, y) + new Vector3(0, grid.GetCellSize(), 0);
-            CellGFX.transform.position = cellPosition;
+            Vector3 cellPosition = grid.GetWorldPositionCellCenter(x, y);
+            this.cellGFX.transform.position = cellPosition;
+            cellGFX.GetComponentInChildren<MeshFilter>().mesh = IsWalkable ? emptyMesh : fullMesh;
+            cellGFX.GetComponentInChildren<MeshRenderer>().material = wallMaterial;
         }
     }
 
     public void UpdateCellGFX()
     {
-        if (CellGFX != null)
+        if (cellGFX != null)
         {
-            Vector3 cellPosition = IsWalkable ? 
-                grid.GetWorldPositionCellCenter(x, y) - new Vector3(0, grid.GetCellSize(), 0) : 
-                grid.GetWorldPositionCellCenter(x, y) + new Vector3(0, grid.GetCellSize(), 0);
-            CellGFX.transform.position = cellPosition;
+            Vector3 cellPosition = grid.GetWorldPositionCellCenter(x, y);
+            cellGFX.transform.position = cellPosition;
+            cellGFX.GetComponentInChildren<MeshFilter>().mesh = IsWalkable ? emptyMesh : fullMesh;
         }
     }
 

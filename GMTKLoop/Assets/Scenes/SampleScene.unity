@@ -255,6 +255,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 29151112}
   m_CullTransparentMesh: 1
+--- !u!1 &51289342
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 51289344}
+  - component: {fileID: 51289343}
+  m_Layer: 0
+  m_Name: EnemyController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &51289343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51289342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38c027b8d1991f64aab7a1455c99ef5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &51289344
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51289342}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &52158342
 GameObject:
   m_ObjectHideFlags: 0
@@ -1698,10 +1742,12 @@ MonoBehaviour:
   activeUnit: {fileID: 0}
   blueTeamActiveUnitIndex: 0
   redTeamActiveUnitIndex: 0
+  turn: 0
   state: 0
   canMoveThisTurn: 0
   canAttackThisTurn: 0
   currentActionPoints: 0
+  enemyTurnInProgress: 0
   debugMode: 0
 --- !u!4 &903690364
 Transform:
@@ -2361,7 +2407,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7406293028034535345, guid: 2bd5ee7b152e4c44d8ee0d1e48c1b158, type: 3}
       propertyPath: invertMouseY
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7406293028034535345, guid: 2bd5ee7b152e4c44d8ee0d1e48c1b158, type: 3}
       propertyPath: verticalMinAngle
@@ -3036,22 +3082,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 359620834128440533, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: a15a28a63870c124890a2c324f74dade, type: 2}
     - target: {fileID: 1385526586865964234, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
       propertyPath: m_LocalScale.x
-      value: 6.57
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 1385526586865964234, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
       propertyPath: m_LocalScale.y
-      value: 6.57
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 1385526586865964234, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
       propertyPath: m_LocalScale.z
-      value: 6.57
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 2050758675921383455, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
       propertyPath: m_Name
       value: Environment
       objectReference: {fileID: 0}
+    - target: {fileID: 2510603694352920655, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
+      propertyPath: fullMesh
+      value: 
+      objectReference: {fileID: -6704524558342913781, guid: 1841157fc01076f45bbfe78d923c2c59, type: 3}
+    - target: {fileID: 2510603694352920655, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
+      propertyPath: emptyMesh
+      value: 
+      objectReference: {fileID: 4457572243274787265, guid: 1841157fc01076f45bbfe78d923c2c59, type: 3}
     - target: {fileID: 2510603694352920655, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
       propertyPath: worldSettings
       value: 
@@ -3094,6 +3152,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8245170059815804950, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8494172119162571927, guid: 1b43daef47166804e9f5e4ba733c83dd, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -4310,6 +4372,7 @@ SceneRoots:
   - {fileID: 183907550}
   - {fileID: 903690364}
   - {fileID: 88664016}
+  - {fileID: 51289344}
   - {fileID: 2109704576}
   - {fileID: 1788768679}
   - {fileID: 1061233294}

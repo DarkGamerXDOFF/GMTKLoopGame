@@ -16,7 +16,7 @@ public class GridCombatSystem : MonoBehaviour
     [SerializeField] private int blueTeamActiveUnitIndex;
     [SerializeField] private int redTeamActiveUnitIndex;
 
-    //[SerializeField] private int maxMoveDistance = 5;
+    [SerializeField] private Team turn;
 
     private Grid<Cell> grid;
 
@@ -27,6 +27,8 @@ public class GridCombatSystem : MonoBehaviour
     [SerializeField] private bool canAttackThisTurn;
 
     [SerializeField] private int currentActionPoints;
+
+    [SerializeField] private bool enemyTurnInProgress = false;
 
     public int MaxActionPoints
     {
@@ -96,99 +98,109 @@ public class GridCombatSystem : MonoBehaviour
         switch (state)
         {
             case State.Normal:
-                if (Input.GetMouseButtonDown(0))
+
+                switch (turn)
                 {
-                    Cell currentCell = grid.GetGridObject(activeUnit.transform.position);
-                    
-                    Vector3 mousePos = Mouse3D.GetMouseWorldPosition();
-                    Cell cell = grid.GetGridObject(mousePos);
-                    Unit targetUnit = cell.GetUnit();
-
-                    if (targetUnit != null)
-                    {
-                        //Clicked on a unit, so we can attack it
-                        if (targetUnit.IsEnemy(activeUnit))
+                    case Team.Blue:
+                        if (Input.GetMouseButtonDown(0))
                         {
-                            if (activeUnit.CanAttackUnit(targetUnit))
+                            Cell currentCell = grid.GetGridObject(activeUnit.transform.position);
+
+                            Vector3 mousePos = Mouse3D.GetMouseWorldPosition();
+                            Cell cell = grid.GetGridObject(mousePos);
+                            Unit targetUnit = cell.GetUnit();
+
+                            if (targetUnit != null)
                             {
-                                if (canAttackThisTurn)
+                                //Clicked on a unit, so we can attack it
+                                if (targetUnit.IsEnemy(activeUnit))
                                 {
-                                    canAttackThisTurn = false;
+                                    if (activeUnit.CanAttackUnit(targetUnit))
+                                    {
+                                        if (canAttackThisTurn)
+                                        {
+                                            canAttackThisTurn = false;
 
-                                    state = State.Waiting;
+                                            state = State.Waiting;
 
-                                    activeUnit.LookAt(targetUnit.transform.position);
-                                    activeUnit.AttackUnit(targetUnit, () =>
+                                            //activeUnit.LookAt(targetUnit.transform.position);
+                                            activeUnit.AttackUnit(targetUnit, () =>
+                                            {
+                                                if (debugMode)
+                                                    Debug.Log("Attack completed!");
+
+                                                state = State.Normal;
+
+                                                targetUnit.TakeDamage(activeUnit.AttackDamage);
+
+                                                TestTurnOver();
+                                            });
+                                        }
+                                    }
+                                    else
                                     {
                                         if (debugMode)
-                                            Debug.Log("Attack completed!");
-
-                                        state = State.Normal;
-
-                                        targetUnit.TakeDamage(activeUnit.AttackDamage);
-                                        
-                                        TestTurnOver();
-                                    });
+                                            Debug.Log($"Cannot attack, {targetUnit} is too far");
+                                    }
                                 }
                             }
                             else
                             {
-                                if (debugMode)
-                                    Debug.Log($"Cannot attack, {targetUnit} is too far");
-                                //Cannot attack enemy because reasons...
+                                //No Unit at the clicked position, so we can move
+                                if (cell.IsValidMovePos == false || cell == grid.GetGridObject(activeUnit.transform.position))
+                                {
+                                    if (debugMode)
+                                        Debug.Log($"Cell is valid: {cell.IsValidMovePos} | Unit is on cell: {cell == grid.GetGridObject(activeUnit.transform.position)}");
+                                    return;
+                                }
+
+                                if (canMoveThisTurn)
+                                {
+                                    canMoveThisTurn = false;
+
+                                    state = State.Waiting;
+
+                                    activeUnit.MoveTo(mousePos, () =>
+                                    {
+                                        state = State.Normal;
+
+                                        currentCell.ClearUnit(); //Remove unit from current cell
+                                        cell.SetUnit(activeUnit); //Set unit to new cell
+
+                                        UpdateValidMovePositions(); //Update valid move positions for the new unit position
+
+                                        TestTurnOver();
+                                        if (debugMode)
+                                            Debug.Log("Unit reached the destination.");
+                                    });
+                                }
+                                else
+                                {
+                                    if (debugMode)
+                                    {
+                                        //Cannot move because already moved this turn
+                                        Debug.Log("Cannot move, already moved this turn");
+                                    }
+                                }
                             }
                         }
-                        else
-                        {
-                            //No an enemy unit, so we cannot attack
-                        }
-                    }
-                    else
-                    {
-                        //No Unit at the clicked position, so we can move
-                        if (cell.IsValidMovePos == false || cell == grid.GetGridObject(activeUnit.transform.position))
+
+                        if (Input.GetKeyDown(KeyCode.Space))
                         {
                             if (debugMode)
-                                Debug.Log($"Cell is valid: {cell.IsValidMovePos} | Unit is on cell: {cell == grid.GetGridObject(activeUnit.transform.position)}");
-                            return;
+                                Debug.Log("Ending turn");
+                            ForceTurnOver();
                         }
-
-                        if (canMoveThisTurn)
+                        break;
+                    case Team.Red:
+                        if (!enemyTurnInProgress)
                         {
-                            canMoveThisTurn = false;
-
-                            state = State.Waiting;
-
-                            activeUnit.MoveTo(mousePos, () =>
-                            {
-                                state = State.Normal;
-
-                                currentCell.ClearUnit(); //Remove unit from current cell
-                                cell.SetUnit(activeUnit); //Set unit to new cell
-
-                                UpdateValidMovePositions(); //Update valid move positions for the new unit position
-
-                                TestTurnOver();
-                                if (debugMode)
-                                    Debug.Log("Unit reached the destination.");
-                            });
+                            enemyTurnInProgress = true;
+                            EnemyController.i.TakeEnemyTurn(activeUnit);
                         }
-                        else
-                        {
-                            if (debugMode)
-                            {
-                                //Cannot move because already moved this turn
-                                Debug.Log("Cannot move, already moved this turn");
-                            }
-                        }   
-                    } 
-                }
-
-                if (Input.GetKeyDown(KeyCode.Space))
-                {
-                    if (debugMode)
-                        Debug.Log("Ending turn");
-                    ForceTurnOver();
+                        break;
+                    default:
+                        break;
                 }
                 break;
             case State.Waiting:
@@ -215,7 +227,7 @@ public class GridCombatSystem : MonoBehaviour
             Debug.Log($"{unit.name} has unsubscried");
     }
 
-    private void ForceTurnOver()
+    public void ForceTurnOver()
     {
         if ((!canMoveThisTurn || !canAttackThisTurn) && activeUnit != null && activeUnit.GetTeam() == Team.Blue)
         {
@@ -280,6 +292,11 @@ public class GridCombatSystem : MonoBehaviour
         }
     }
 
+    public void ResetEnemyTurn()
+    {
+        SetStateNormal();
+        enemyTurnInProgress = false;
+    }
 
     private void CheckEscapeCondition()
     {
@@ -294,10 +311,7 @@ public class GridCombatSystem : MonoBehaviour
                 return;
             }
         }
-        if (blueTeam.Count == 0)
-        {
-            EndGame(false);
-        }
+        if (blueTeam.Count == 0) EndGame(false);
     }
 
     public void SelectNextActiveUnit()
@@ -315,13 +329,13 @@ public class GridCombatSystem : MonoBehaviour
 
         if (blueTeam.Count == 0)
         {
-            // Only red team left
             SetActiveUnit(GetNextActiveUnit(redTeam));
+            turn = Team.Red;
         }
         else if (redTeam.Count == 0)
         {
-            // Only blue team left
             SetActiveUnit(GetNextActiveUnit(blueTeam));
+            turn = Team.Blue;
         }
         else
         {
@@ -329,10 +343,12 @@ public class GridCombatSystem : MonoBehaviour
             if (activeUnit == null || activeUnit.GetTeam() == Team.Red)
             {
                 SetActiveUnit(GetNextActiveUnit(blueTeam));
+                turn = Team.Blue;
             }
             else
             {
                 SetActiveUnit(GetNextActiveUnit(redTeam));
+                turn = Team.Red;
             }
         }
 
@@ -373,7 +389,6 @@ public class GridCombatSystem : MonoBehaviour
         else if (redTeam.Count == 0)
             if (debugMode)
                 Debug.Log("Victory! All enemies defeated.");
-
     }
 
     private void EndGame(bool playerWon)
@@ -381,7 +396,6 @@ public class GridCombatSystem : MonoBehaviour
         state = State.Waiting;
         
         ClearStage();
-
 
         if (playerWon)
         {
@@ -412,7 +426,12 @@ public class GridCombatSystem : MonoBehaviour
         GameManager.i.RemoveAllUnits();
     }
 
-    private void UpdateValidMovePositions()
+    public List<Unit> GetBlueTeam() => blueTeam;
+
+    public void SetStateWaiting() => state = State.Waiting;
+    public void SetStateNormal() => state = State.Normal;
+
+    public void UpdateValidMovePositions()
     {
         if (grid == null || activeUnit == null)
             return; 

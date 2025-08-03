@@ -17,6 +17,8 @@ public class WorldBuilder : MonoBehaviour
     [SerializeField] private GameObject redSpawnerPF;
 
     [SerializeField] private GameObject groundPlane;
+    [SerializeField] private Mesh emptyMesh;
+    [SerializeField] private Mesh fullMesh;
 
     private Grid<Cell> grid;
     private GameObject escapeMarker;
@@ -42,10 +44,10 @@ public class WorldBuilder : MonoBehaviour
         Vector3 autoOffset = new Vector3(worldSettings.width, 0, worldSettings.height) / -2 * worldSettings.cellSize;
 
         Grid<Cell> grid = new Grid<Cell>(worldSettings.width, worldSettings.height, worldSettings.cellSize, worldSettings.autoOffsetCenter ? autoOffset : worldSettings.originPosition,
-            (Grid<Cell> g, int x, int y) => new Cell(g, x, y, worldSettings.walkableColor, worldSettings.wallMaterial), true);
+            (Grid<Cell> g, int x, int y) => new Cell(g, x, y, worldSettings.walkableColor, worldSettings.wallMaterial, fullMesh, emptyMesh), true);
 
+        groundPlane.SetActive(true);
         groundPlane.transform.localScale = new Vector3((float)worldSettings.width / 2, 1, (float)worldSettings.height / 2);
-        groundPlane.GetComponent<Renderer>().material.mainTextureScale = new Vector2((float)worldSettings.width / 2, (float)worldSettings.height / 2);
 
         GenerateBaseMap(grid);
         RegenerateWorld(grid);

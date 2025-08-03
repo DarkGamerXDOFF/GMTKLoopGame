@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8950bf120bbdde42b5261c7a62bdc29, type: 3}
   m_Name: WorldSettings
   m_EditorClassIdentifier: 
-  width: 25
-  height: 25
+  width: 20
+  height: 20
   cellSize: 5
   originPosition: {x: 0, y: 0, z: 0}
   autoOffsetCenter: 1
-  roomCount: 6
-  minRoomSize: 4
-  maxRoomSize: 8
-  walkableColor: {r: 0, g: 1, b: 0, a: 1}
+  roomCount: 5
+  minRoomSize: 3
+  maxRoomSize: 6
+  walkableColor: {r: 1, g: 0.12549016, b: 0.4313725, a: 1}
   wallMaterial: {fileID: 2100000, guid: 808e7ace9617f3e468d009320598b030, type: 2}

@@ -134,10 +134,7 @@ public class Unit : MonoBehaviour
     }
 
 
-    public void LookAt(Vector3 targetPosition)
-    {
-        lookTarget = targetPosition;
-    }
+    public void LookAt(Vector3 targetPosition) => lookTarget = targetPosition;
 
     private void DrawPathLine(List<PathNode<Cell>> path)
     {
@@ -176,14 +173,10 @@ public class Unit : MonoBehaviour
 
     public void OnUnitDeathAnimationCompleted()
     {
-        // Cleanup logic after death animation
         Destroy(gameObject);
     }
 
-    public bool IsEnemy(Unit unit)
-    {
-        return unit.team != team;
-    }
+    public bool IsEnemy(Unit unit) => unit.team != team;
 
     public void AttackUnit(Unit unit, Action OnAttackCompleted)
     {
@@ -192,39 +185,19 @@ public class Unit : MonoBehaviour
         this.OnAttackCompleted = OnAttackCompleted;
     }
 
-    public bool CanAttackUnit(Unit unit)
-    {
-        return grid.GetGridObject(unit.transform.position).IsValidMovePos;
-    }
+    public bool CanAttackUnit(Unit unit) => grid.GetGridObject(unit.transform.position).IsValidMovePos;
 
-    public void TakeDamage(int damage)
-    {
-        healthSystem.TakeDamage(damage);
-    }
+    public void TakeDamage(int damage) => healthSystem.TakeDamage(damage);
 
-    public Team GetTeam()
-    {
-        return team;
-    }
+    public Team GetTeam() => team;
 
-    public void SetTeam(Team newTeam)
-    {
-        team = newTeam;
-    }
 
-    public UnitSpawner GetSpawner()
-    {
-        return unitSpawner;
-    }
+    public void SetTeam(Team newTeam) => team = newTeam;
 
-    public void SetSpawner(UnitSpawner spawner)
-    {
-        unitSpawner = spawner;
-    }
+    public UnitSpawner GetSpawner() => unitSpawner;
 
-    public void ClearSpawner()
-    {
-        unitSpawner = null;
-    }
+    public void SetSpawner(UnitSpawner spawner) => unitSpawner = spawner;
+
+    public void ClearSpawner() => unitSpawner = null;
 }
 public enum Team { Blue, Red }
